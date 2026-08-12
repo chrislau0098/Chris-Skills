@@ -1,4 +1,4 @@
-# claude-skills
+# Chris-Skills
 
 自用的 Claude Code / Claude Agent Skills 集合，可直接装到本地使用。
 
@@ -13,8 +13,8 @@
 Skill 放进 `~/.claude/skills/` 即可被 Claude Code 识别。推荐软链接，这样 `git pull` 之后自动生效。
 
 ```bash
-git clone https://github.com/chrislau0098/claude-skills.git ~/Code/claude-skills
-ln -s ~/Code/claude-skills/skills/figma-motion-storyboard ~/.claude/skills/figma-motion-storyboard
+git clone https://github.com/chrislau0098/Chris-Skills.git ~/Code/Chris-Skills
+ln -s ~/Code/Chris-Skills/skills/figma-motion-storyboard ~/.claude/skills/figma-motion-storyboard
 ```
 
 装完在 Claude Code 里输入 `/` 能看到 skill 名，或者直接描述任务让它自动触发。
