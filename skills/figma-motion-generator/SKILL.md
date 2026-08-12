@@ -1,35 +1,40 @@
 ---
-name: figma-motion-storyboard
+name: figma-motion-generator
 description: 在 Figma 画布上用原生 Motion 功能制作时间轴动画。分两阶段：先在指定 Figma 页面生成「动画时间板」故事板框架（关键帧 / 动画帧 / 时长三行 + 参数面板），用户把分镜填好后读回，产出 motion-spec 并写入 manualKeyframeTracks 生成动画，关键参数全部可配置。Use when 用户要在 Figma 里做动画、把分镜或故事板做成动效、生成动画故事板框架、写 Motion 关键帧、调缓动或动画节奏，或提到 Figma Motion、manualKeyframeTracks、动画时间板、分镜、keyframe、storyboard。不适用于 Web 端动画实现、After Effects 或 Lottie。
 ---
 
-# Figma Motion 故事板与生成
+# Figma Motion 动画生成
 
-在 Figma 文件里用原生 Motion 做时间轴动画。适用于产品 onboarding、功能演示、循环动效、素材过场。
+在 Figma 文件里用原生 Motion 做时间轴动画。适用于产品 onboarding、功能演示、循环动效、素材过场。Web 端动画实现用 `motion` skill，静态设计用 `figma-use`。
 
-Web 端动画实现用 `motion` skill，静态设计用 `figma-use`。
+## 第 0 步 · 检查 Figma MCP
+
+动手前先过这四项，任何一项不通就停下来告诉用户怎么修，不要硬跑。
+
+1. **工具在不在。** 需要 `use_figma` / `get_metadata` / `get_screenshot`。以 deferred 形式出现时用一次 ToolSearch 批量加载：`select:use_figma,get_metadata,get_screenshot`。完全找不到说明 Figma MCP 没装或没连上——让用户在**交互式** Claude Code 里跑 `/mcp` 查看连接状态，或用 `claude mcp` 添加 server。非交互会话跑不了 OAuth 流程，不要试。
+2. **授权通不通。** 调 `whoami`。返回账号 handle、邮箱和所属 plan 即为已授权；报鉴权错误说明未授权或 token 失效，同样让用户去 `/mcp` 重新授权。**返回值含账号邮箱，属于个人信息，不要写进产出文档，也不要复述给第三方。**
+3. **席位够不够。** `whoami` 返回的 `plans[].seat` 为 `View` 时只能读不能写。目标文件所属 plan 必须是 `Full` 或 Editor 席位，否则 `use_figma` 的写操作会失败。席位不对要让用户换账号或申请编辑权限。
+4. **Motion 开关开没开。** Motion API 挂在 `metronome` 用户特性开关下。读一次目标节点的 `manualKeyframeTracks` 探测，报 `"manualKeyframeTracks" is not a supported API` 说明当前账号没开，告知用户并停止，不要重试。
+
+## 需要一起加载的 skill
+
+- **`figma-use` + `figma-use-motion`** 必须同时加载，调用 `use_figma` 时 `skillNames` 传 `"figma-use,figma-use-motion"`。两者随 Figma MCP 提供。
+- **Phase B 开始前加载 `emil-design-eng` 和 `motion`**。缓动、时长、stagger 的判断依据来自这两个 skill；[references/motion-craft.md](references/motion-craft.md) 是它们的 Figma 适配版，冲突时以原 skill 为准。
 
 ## Quick start
 
 ```js
-// 给一个节点写一条位移轨道。field 是描述符对象，不是字符串；时间单位是秒。
+// field 是描述符对象，不是字符串；时间单位是秒；缓动写在到达的那个关键帧上。
 const node = await figma.getNodeByIdAsync('123:456');
-node.applyManualKeyframeTrack(
-  { type: 'PROPERTY', name: 'TRANSLATION_X' },
-  { keyframes: [
-      { timelinePosition: 0,   value: { type: 'FLOAT', value: 0 } },
-      { timelinePosition: 0.4, value: { type: 'FLOAT', value: 120 },
-        easing: { type: 'CUSTOM_CUBIC_BEZIER',
-                  easingFunctionCubicBezier: { x1: .23, y1: 1, x2: .32, y2: 1 } } },
+node.applyManualKeyframeTrack({ type: 'PROPERTY', name: 'TRANSLATION_X' }, {
+  keyframes: [
+    { timelinePosition: 0,   value: { type: 'FLOAT', value: 0 } },
+    { timelinePosition: 0.4, value: { type: 'FLOAT', value: 120 },
+      easing: { type: 'CUSTOM_CUBIC_BEZIER',
+                easingFunctionCubicBezier: { x1: .23, y1: 1, x2: .32, y2: 1 } } },
   ] });
 return { mutatedNodeIds: [node.id] };
 ```
-
-## 前置条件
-
-1. **同时加载 `figma-use` 和 `figma-use-motion`**，调用 `use_figma` 时 `skillNames` 传 `"figma-use,figma-use-motion"`。这两个 skill 随 Figma MCP 插件提供。
-2. Motion API 挂在 `metronome` 用户特性开关下。报 `"manualKeyframeTracks" is not a supported API` 说明当前账号没开，直接告知用户并停止，不要重试。
-3. **Phase B 开始前加载 `emil-design-eng` 和 `motion`**。缓动、时长、stagger 的判断依据来自这两个 skill；[references/motion-craft.md](references/motion-craft.md) 是它们的 Figma 适配版，冲突时以原 skill 为准。
 
 ## 工作流
 
@@ -37,9 +42,7 @@ return { mutatedNodeIds: [node.id] };
 
 输入：Figma 文件 URL（含目标页面）、舞台尺寸、段落列表（每段一句话 + 预估毫秒数）。没给段落列表就用 6 段占位。
 
-产出：目标页面上一个「动画时间板」Frame，三行结构加参数面板。用户在关键帧格子里画静止状态、在说明栏写动作、在时长条里改毫秒数。
-
-几何契约与生成脚本见 [references/storyboard-canvas.md](references/storyboard-canvas.md)。
+产出：目标页面上一个「动画时间板」Frame，三行结构加参数面板。用户在关键帧格子里画静止状态、在说明栏写动作、在时长条里改毫秒数。几何契约与生成脚本见 [references/storyboard-canvas.md](references/storyboard-canvas.md)。
 
 **Phase A 结束就停。** 等用户说填好了再进 Phase B，不要自行猜测分镜内容。
 

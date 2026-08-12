@@ -6,7 +6,7 @@
 
 | Skill | 用途 |
 |---|---|
-| [figma-motion-storyboard](skills/figma-motion-storyboard/) | 在 Figma 画布上用原生 Motion 做时间轴动画。先生成「动画时间板」故事板框架，设计师把分镜填好后读回，写 `manualKeyframeTracks` 产出动画。含 Plugin API 常见错误、缓动与节奏判断、补偿轨道与速度衔接的推导 |
+| [figma-motion-generator](skills/figma-motion-generator/) | 在 Figma 画布上用原生 Motion 做时间轴动画。先生成「动画时间板」故事板框架，设计师把分镜填好后读回，写 `manualKeyframeTracks` 产出动画。含 Plugin API 常见错误、缓动与节奏判断、补偿轨道与速度衔接的推导 |
 
 ## 安装
 
@@ -14,7 +14,7 @@ Skill 放进 `~/.claude/skills/` 即可被 Claude Code 识别。推荐软链接�
 
 ```bash
 git clone https://github.com/chrislau0098/Chris-Skills.git ~/Code/Chris-Skills
-ln -s ~/Code/Chris-Skills/skills/figma-motion-storyboard ~/.claude/skills/figma-motion-storyboard
+ln -s ~/Code/Chris-Skills/skills/figma-motion-generator ~/.claude/skills/figma-motion-generator
 ```
 
 装完在 Claude Code 里输入 `/` 能看到 skill 名，或者直接描述任务让它自动触发。
@@ -35,11 +35,12 @@ skills/<skill-name>/
 
 ## 依赖
 
-`figma-motion-storyboard` 需要：
+`figma-motion-generator` 需要：
 
-- Figma MCP（官方插件），提供 `use_figma` 工具和 `figma-use` / `figma-use-motion` 两个 skill
-- Figma 账号开通 `metronome` 特性开关，否则 Motion API 不可用
-- 可选：[`emil-design-eng`](https://github.com/emilkowalski/skills) 和 `motion` 两个 skill，用于缓动与节奏判断
+- **Figma MCP（官方插件）已连接并完成授权。** 它提供 `use_figma` 工具和 `figma-use` / `figma-use-motion` 两个 skill。没连上或没授权，在交互式 Claude Code 里跑 `/mcp` 查看和授权，或用 `claude mcp` 添加 server；非交互会话跑不了 OAuth 流程。
+- **目标文件所属 plan 是 Full 或 Editor 席位。** View 席位只能读不能写。skill 会调 `whoami` 自检这两项，不通会直接停下并说明怎么修。
+- Figma 账号开通 `metronome` 特性开关，否则 Motion API 不可用。
+- 可选：[`emil-design-eng`](https://github.com/emilkowalski/skills) 和 `motion` 两个 skill，用于缓动与节奏判断。
 
 ## License
 
