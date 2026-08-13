@@ -107,6 +107,30 @@ function poseAt(path, p){                       // path: {q:[0,1/3,2/3,1], w:[�
 
 **不同角色的窗口可以不同。** 故事板的第 N 帧不一定是所有元素的同一个进度：实测的四帧故事板里，换位在第 3 帧就完成（占一步的 67%），而坠落和补位要到第 4 帧（100%）。按角色各给一个窗口，别硬套同一个进度。
 
+### 路径要按弧长参数化，否则缓动失效
+
+手画的航点在路径上分布通常不均匀。若直接用 `p` 当参数，缓动曲线作用在 `p` 上，而画面位移与 `p` 不成比例，速度就会在某处突然拉高。实测：某条换位路径前半段几乎不改尺寸、后半段宽度从 181.7 冲到 221，十等分的位移是 `3.11 / 4.24 / 4.68 / 4.46 / 3.6 / 6.04 / 5.57 / …`，中间那个 3.6 → 6.04 就是观感上的速度峰。
+
+解法是插一层弧长表：
+
+```js
+function arcTable(path, M){                    // M 取 400 足够
+  const ps=[0], cum=[0]; let prev = metric(raw(path,0));
+  for(let i=1;i<=M;i++){ const p=i/M, e=metric(raw(path,p));
+    cum.push(cum[i-1] + dist(prev,e)); ps.push(p); prev=e; }
+  const L=cum[M];
+  return f => { const tg=f*L; let lo=0,hi=M;                 // 二分反查
+    while(hi-lo>1){ const mid=(lo+hi)>>1; (cum[mid]<tg)?lo=mid:hi=mid; }
+    const seg=cum[hi]-cum[lo];
+    return ps[lo] + (seg>1e-9 ? (tg-cum[lo])/seg : 0)*(ps[hi]-ps[lo]); };
+}
+const poseAt = (path, f) => raw(path, arcTable(path,400)(f));
+```
+
+改完之后十等分位移全部相等，速度完全由缓动曲线决定。
+
+**`metric` 只取可见部位。** 元素被舞台裁掉大半时，用完整包围盒会被看不见的部分主导。实测的卡片高 276 而舞台只有 120，取顶边两角；取四角最大值会被裁剪线以下的底角带偏，优化出来的曲线与观感无关。
+
 ## 7. 固定图层下的循环需要几个节点
 
 Figma Motion 不能给图层顺序打关键帧，而循环轮换必然要求「最前的元素回到最后」。节点数由 z 序的单调性推出来。
