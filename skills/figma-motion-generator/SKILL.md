@@ -51,7 +51,7 @@ return { mutatedNodeIds: [node.id] };
 1. **读回故事板** — 解析关键帧格子的图层结构、说明栏文字、时长条里的毫秒数。
 2. **写 motion-spec** — 套用 [templates/motion-spec.md](templates/motion-spec.md) 落一份本地文档，作为数值的唯一真源。每段写清 t_in / t_out、参与节点、属性轨道、缓动、约束。**先让用户确认 spec，再写关键帧。**
 3. **建实现画板** — 新建一个画板承载动画，命名带版本号。舞台本身是顶层 Frame，动画写在它的子节点上。
-4. **写轨道** — 按 spec 逐段写 `manualKeyframeTracks`，用 `setTimelineDuration` 设总时长。API 细节与 12 条常见错误见 [references/figma-motion-api.md](references/figma-motion-api.md)。
+4. **写轨道** — 按 spec 逐段写 `manualKeyframeTracks`，用 `setTimelineDuration` 设总时长。API 细节与 13 条常见错误见 [references/figma-motion-api.md](references/figma-motion-api.md)。
 5. **校验** — 读回关键帧值加数值采样，不渲染视频。方法见同一份文档的「校验」节。
 6. **交付** — 报告画板 ID、时间轴、校验结果、未解决项。循环模式需要用户在 Figma 的 Motion 面板手动设置，Plugin API 不暴露。
 
@@ -94,7 +94,7 @@ return { mutatedNodeIds: [node.id] };
 | 文档 | 何时读 |
 |---|---|
 | [references/storyboard-canvas.md](references/storyboard-canvas.md) | Phase A：故事板几何契约与生成脚本 |
-| [references/figma-motion-api.md](references/figma-motion-api.md) | Phase B：Plugin API 表面、12 条常见错误、校验方法 |
+| [references/figma-motion-api.md](references/figma-motion-api.md) | Phase B：Plugin API 表面、13 条常见错误、校验方法 |
 | [references/motion-craft.md](references/motion-craft.md) | 选缓动、定时长、排 stagger、判断该不该动 |
 | [references/motion-math.md](references/motion-math.md) | 补偿轨道、均匀缩放平铺、速度衔接、可行性判定、单调性检查 |
 | [templates/motion-spec.md](templates/motion-spec.md) | 写 motion-spec 时套用 |

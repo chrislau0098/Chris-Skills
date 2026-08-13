@@ -51,7 +51,7 @@
 
 弹簧用 `{ type:'CUSTOM_SPRING', easingFunctionSpring:{ bounce } }`，bounce 取 0–1。物理参数转换用 `figma.motion.physicalSpringToNormalized({mass, stiffness, damping})`。
 
-## 12 条常见错误
+## 13 条常见错误
 
 **1. `field` 不能传字符串。** `applyManualKeyframeTrack('TRANSLATION_X', track)` 会报错，第一个参数必须是描述符对象。
 
@@ -76,6 +76,8 @@
 **11. 旋转节点的渐变方向要用 `relativeTransform` 反推。** 从 `x/y/width/height` 推方向在节点有 `rotation` 时是错的。实测案例：一个旋转了 −15.34° 的扫光层，按轴对齐假设改渐变，把原本平行于遮罩边缘的光带改成了 30.94° 斜角。
 
 **12. 循环模式 Plugin API 不暴露。** 交付时提醒用户在 Figma 的 Motion 面板手动设。
+
+**13. 别对 INSTANCE 调 `rescale()`。** 它会污染 effect：之后设置的 `LAYER_BLUR` / 投影半径会被乘上缩放系数（设 2 实得 1.5）。**更麻烦的是随后写 `INDEXED_ITEM / effects` 轨道会静默失败**——`applyManualKeyframeTrack` 不抛错，但读回时该轨道不存在。要改节点尺寸就别改静态尺寸，按原尺寸克隆，尺寸差交给 `SCALE_XY` 轨道（该轨道的缩放是相对节点自身静止尺寸的，起始尺寸是多少都不影响结果）。写完读回 `Object.keys(node.manualKeyframeTracks)` 确认 `effects` 在里面。
 
 ## 常用脚本
 
