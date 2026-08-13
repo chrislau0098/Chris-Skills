@@ -24,16 +24,14 @@ description: 在 Figma 画布上用原生 Motion 功能制作时间轴动画。�
 ## Quick start
 
 ```js
-// field 是描述符对象，不是字符串；时间单位是秒；缓动写在到达的那个关键帧上。
+// field 是描述符对象不是字符串；时间单位是秒；缓动写在到达的那个关键帧上。
 const node = await figma.getNodeByIdAsync('123:456');
-node.applyManualKeyframeTrack({ type: 'PROPERTY', name: 'TRANSLATION_X' }, {
-  keyframes: [
-    { timelinePosition: 0,   value: { type: 'FLOAT', value: 0 } },
-    { timelinePosition: 0.4, value: { type: 'FLOAT', value: 120 },
-      easing: { type: 'CUSTOM_CUBIC_BEZIER',
-                easingFunctionCubicBezier: { x1: .23, y1: 1, x2: .32, y2: 1 } } },
-  ] });
-return { mutatedNodeIds: [node.id] };
+const cb = e => ({ type:'CUSTOM_CUBIC_BEZIER', easingFunctionCubicBezier:e });
+node.applyManualKeyframeTrack({ type:'PROPERTY', name:'TRANSLATION_X' }, { keyframes:[
+  { timelinePosition:0,   value:{ type:'FLOAT', value:0 } },
+  { timelinePosition:0.4, value:{ type:'FLOAT', value:120 }, easing:cb({x1:.23,y1:1,x2:.32,y2:1}) },
+]});
+return { mutatedNodeIds:[node.id] };
 ```
 
 ## 工作流
@@ -48,7 +46,7 @@ return { mutatedNodeIds: [node.id] };
 
 ### Phase B — 生成 Motion
 
-1. **读回故事板** — 解析关键帧格子的图层结构、说明栏文字、时长条里的毫秒数。
+1. **读回故事板** — 解析关键帧格子的图层结构、说明栏文字、时长条里的毫秒数。用户另给了参考视频就先用 `ffmpeg` 抽帧量出周期、过渡时长、运动方向、以及**元素是同时动还是接力**，方法见 [references/motion-craft.md](references/motion-craft.md)。故事板决定姿态，视频决定节奏。
 2. **写 motion-spec** — 套用 [templates/motion-spec.md](templates/motion-spec.md) 落一份本地文档，作为数值的唯一真源。每段写清 t_in / t_out、参与节点、属性轨道、缓动、约束。**先让用户确认 spec，再写关键帧。**
 3. **建实现画板** — 新建一个画板承载动画，命名带版本号。舞台本身是顶层 Frame，动画写在它的子节点上。
 4. **写轨道** — 按 spec 逐段写 `manualKeyframeTracks`，用 `setTimelineDuration` 设总时长。API 细节与 13 条常见错误见 [references/figma-motion-api.md](references/figma-motion-api.md)。
@@ -87,7 +85,9 @@ return { mutatedNodeIds: [node.id] };
 8. 覆盖已有轨道前先扫外来改动。
 9. 稀疏关键帧之间是线性插值，导数变化快的区间要加密采样点。
 10. 一次只解决一个问题，不在一版里叠多个大改动。
-11. 没验证的写「未验证」，原因不明的写「原因未查明」。
+11. 多元素换位默认让它们**同时动**。别为了消除背景暴露改成接力，那会读成排队。
+12. 故事板的中间姿态是路径航点，不是关键帧。路径与速度分两层做，见 motion-math 第 6 节。
+13. 没验证的写「未验证」，原因不明的写「原因未查明」。
 
 ## 参考文档
 
