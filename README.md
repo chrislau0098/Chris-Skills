@@ -6,7 +6,7 @@
 
 | Skill | 用途 |
 |---|---|
-| [figma-motion-generator](skills/figma-motion-generator/) | 在 Figma 画布上用原生 Motion 做时间轴动画。先生成「动画时间板」故事板框架，设计师把分镜填好后读回，写 `manualKeyframeTracks` 产出动画。含 Plugin API 常见错误、缓动与节奏判断、补偿轨道与速度衔接的推导 |
+| [figma-motion-generator](skills/figma-motion-generator/) | 在 Figma 画布上用原生 Motion 做时间轴动画。先生成「动画时间板」故事板框架，设计师把分镜填好后读回，写 `manualKeyframeTracks` 产出动画。含 Plugin API 常见错误、缓动与节奏判断、路径与速度的推导，以及一个堆叠卡片轮播的完整案例 |
 
 ## 安装
 

@@ -79,15 +79,14 @@ return { mutatedNodeIds:[node.id] };
 2. 数值真源是 motion-spec 文档，画布是视觉真源。
 3. 不每轮渲染视频。读回关键帧值加采样验证，用户自己在 Figma 看。
 4. 改节点 `x` 之后必须确认 `children` 顺序，位置和图层是两套独立的顺序。
-5. 缓动写在**到达**的那个关键帧上，第一个关键帧的缓动无效。
-6. 时间单位是秒。
-7. 缩放会同时缩放圆角、描边和投影，需要写 `1/s(t)` 补偿轨道。
-8. 覆盖已有轨道前先扫外来改动。
-9. 稀疏关键帧之间是线性插值，导数变化快的区间要加密采样点。
-10. 一次只解决一个问题，不在一版里叠多个大改动。
-11. 多元素换位默认让它们**同时动**。别为了消除背景暴露改成接力，那会读成排队。
-12. 故事板的中间姿态是路径航点，不是关键帧。路径与速度分两层做，见 motion-math 第 6 节。
-13. 没验证的写「未验证」，原因不明的写「原因未查明」。
+5. 缓动写在**到达**的那个关键帧上（第一帧的缓动无效）；时间单位是秒。
+6. 缩放会同时缩放圆角、描边和投影，需要写 `1/s(t)` 补偿轨道。
+7. 覆盖已有轨道前先扫外来改动。
+8. 关键帧之间是线性插值。采样间隔要小于两个渲染帧（60fps 下 ≤ 33ms），否则会出现连续多帧同速再跳档。
+9. 一次只解决一个问题，不在一版里叠多个大改动。
+10. 多元素换位默认让它们**同时动**，别为了消除背景暴露改成接力。指标用来定位问题，不能用来定义目标。
+11. 故事板的中间姿态是路径航点，不是关键帧。路径与速度分两层做，见 motion-math 第 6 节。
+12. 没验证的写「未验证」，原因不明的写「原因未查明」。
 
 ## 参考文档
 
@@ -96,5 +95,6 @@ return { mutatedNodeIds:[node.id] };
 | [references/storyboard-canvas.md](references/storyboard-canvas.md) | Phase A：故事板几何契约与生成脚本 |
 | [references/figma-motion-api.md](references/figma-motion-api.md) | Phase B：Plugin API 表面、13 条常见错误、校验方法 |
 | [references/motion-craft.md](references/motion-craft.md) | 选缓动、定时长、排 stagger、判断该不该动 |
-| [references/motion-math.md](references/motion-math.md) | 补偿轨道、均匀缩放平铺、速度衔接、可行性判定、单调性检查 |
+| [references/motion-math.md](references/motion-math.md) | 补偿轨道、均匀缩放平铺、速度衔接、路径生成、节点数推导、单调性检查 |
+| [references/case-stacked-carousel.md](references/case-stacked-carousel.md) | 完整案例：堆叠卡片轮播。含槽位表、时序表、三段测量脚本 |
 | [templates/motion-spec.md](templates/motion-spec.md) | 写 motion-spec 时套用 |
